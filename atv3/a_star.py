@@ -1,4 +1,3 @@
-import heapq
 import time
 
 class AStar:
@@ -45,17 +44,6 @@ class AStar:
                         open_nodes.append(neighbour)
 
         return
-    
-    def is_closer(self, node, nodes) -> bool:
-        """
-        Checks if a node is has a better path to the parent
-        """
-        for i in range(len(nodes)):
-            if node == nodes[i] and node.g < nodes[i].g:
-                nodes.pop(i)
-                return True
-
-        return False
 
     def heuristic(self, start: tuple[int, int], end:tuple[int, int]) -> int:
         """
