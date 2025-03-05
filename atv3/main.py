@@ -2,6 +2,7 @@ import os
 import cv2
 import time
 from a_star import AStar
+from greedy_search import GreedySearch
 
 class Main:
     def __init__(self, board_path: str = "", start: tuple[int, int] = (0, 0), goal: tuple[int, int] = (0, 0)):
@@ -23,25 +24,31 @@ class Main:
             "☻", # 2 - Player
             "X", # 3 - Goal
             "•"  # 4 - Path
-            ]
+        ]
+        
         self.anim_fps = 5
         self.start = start
         self.goal = goal
-        self.create_canvas([(0,0)])
-        self.print_canvas()
+        self.total_time = -1
+
+        self.algs = {
+            "a_star": lambda board, start, goal: AStar(board, start, goal),
+            "greedy": lambda board, start, goal: GreedySearch(board, start, goal)
+        }
+
         
     # Algorithms
-    def run_a_star(self):
+    def run(self, alg_name: str):
         """
-        Runs the A* algorithm and set the route to the path that was found
+        Runs the choosen algorithm and set the route to the path that was found
         """
-        alg = AStar(self.board,self.start,self.goal)
+        alg = self.algs[alg_name](self.board, self.start, self.goal)
         try:
             alg.run()
             self.set_route(alg.get_path())
+            self.total_time = alg.get_total_time()
         except:
             print("Couldn't find a path!")
-            exit()
 
         
     # Board
@@ -139,15 +146,32 @@ class Main:
         Return the tile by it's id
         """
         return self.tiles[id] if id in range(len(self.tiles)) else "🛇"
-
+    
 # Main
 def main():
-    game = Main(board_path="boards/a.png", start=(0, 30), goal=(31, 0))
-    game.run_a_star()
-    if game.route == None:
-        print("Couldn't find a path to the end")
-        return
-    game.animate()
+    maps = [
+        Main(board_path="boards/a.png", start=(0, 0), goal=(15, 31)),
+        Main(board_path="boards/b.png", start=(0, 0), goal=(7, 7))
+    ]
+    while True:
+        try:
+            map_selection = int(input("Selecione Um Mapa:\n> 1 - Grande\n> 2 - Pequeno\n> 0 - Exit\n> "))
+            if not map_selection: break
+            map = maps[map_selection - 1]
+        except:
+            print("Mapa não encontrado")
+            continue
+
+        try:
+            match int(input("Selecione um algoritmo:\n> 1 - A*\n> 2 - Greedy\n> ")):
+                case 1: map.run("a_star")
+                case 2: map.run("greedy")
+        except:
+            print("Algoritmo não encontrado!")
+            continue
+
+        map.animate()
+        print(f"Tempo para achar a solução: {map.total_time}s\n============================================\n")
 
 if __name__ == "__main__":
     main()

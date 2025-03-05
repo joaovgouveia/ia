@@ -1,8 +1,8 @@
 import time
 
-class AStar:
+class GreedySearch:
     """
-    A* pathfinding algortimh
+    Greedy pathfinding algortimh
     """
     def __init__(self, board: list[list[int]], start: tuple[int, int], end: tuple[int, int]):
         self.board = board
@@ -15,36 +15,32 @@ class AStar:
         Runs the pathfinding algortitm
         """
         start_time = time.time()
-        self.path = self.a_star()
+        self.path = self.greedy_search()
         self.total_time = time.time() - start_time
             
 
-    def a_star(self):
-        open_nodes = [Node(self.start, 0, 0, None)]
+    def greedy_search(self):
+        open_nodes = [Node(self.start, 0, None)]
         closed = []
+
         while open_nodes:
-            open_nodes = sorted(open_nodes, key = lambda n: n.f)
+            open_nodes = sorted(open_nodes, key = lambda n: n.h)
             current = open_nodes.pop(0)
+
+            if current in closed:
+                continue
+
             closed.append(current)
             if current.position == self.end:
                 return current.get_path()
-
-            for neighbour in [Node(position, self.heuristic(position, self.end), current.g + 1, current)\
+            
+            for neighbour in [Node(position, self.heuristic(position, self.end), current)\
                               for position in self.get_moves(current.position)]:
-                
-                if neighbour in closed:
-                    continue
-
-                if neighbour not in open_nodes:
+                if neighbour not in closed:
                     open_nodes.append(neighbour)
-                
-                for i in range(len(open_nodes)):
-                    if neighbour == open_nodes[i] and neighbour.g < open_nodes[i].g:
-                        open_nodes.pop(i)
-                        open_nodes.append(neighbour)
 
         return
-
+    
     def heuristic(self, start: tuple[int, int], end:tuple[int, int]) -> int:
         """
         Return the aproximated distance from start to end
@@ -78,14 +74,12 @@ class AStar:
         Return the time it took to find the path, in seconds
         """
         return self.total_time
-
+    
 class Node:
-    def __init__(self, position: tuple[int, int], h: int, g: int, parent = None):
+    def __init__(self, position: tuple[int, int], h: int, parent = None):
         self.position = position
         self.h = h
-        self.g = g
         self.parent = parent
-        self.f = self.g + self.h
 
     def set_parent(self, new_parent):
         self.parent = new_parent
