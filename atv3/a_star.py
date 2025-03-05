@@ -5,9 +5,9 @@ class AStar:
     """
     A* pathfinding algortimh
     """
-    def __init__(self, board: list[list[int]], start: tuple[int, int], goal: tuple[int, int]):
+    def __init__(self, board: list[list[int]], start: tuple[int, int], end: tuple[int, int]):
         self.board = board
-        self.goal = goal
+        self.end = end
         self.start = start
         self.path = None
         
@@ -21,31 +21,39 @@ class AStar:
             
 
     def a_star(self):
-        hell = []
-        nodes = []
-        nodes.append((Node(self.start, 0, 0, None)))
-        while len(nodes) > 0:
-            node = nodes.pop(0)
-            for child in [Node(position, node.distance + 1, self.heuristic(position, self.goal), node)\
-                          for position in self.get_manhattan_moves(node.position)]:
-                if child.position == self.goal:
-                    return child.get_path()
+        open_nodes = [Node(self.start, 0, 0, None)]
+        closed = []
+        while len(open_nodes) > 0:
+            open_nodes = sorted(open_nodes, key = lambda n: n.f)
+            current = open_nodes.pop(0)
+            closed.append(current)
+            if current.position == self.end:
+                return current.get_path()
 
-                if not self.uelinton(child, nodes, hell):
-                    nodes.append(child)
+            for neighbour in [Node(position, self.heuristic(position, self.end), current.g + 1, current)\
+                              for position in self.get_moves(current.position)]:
+                
+                if neighbour in closed:
+                    continue
 
-            hell.append(node)
-            nodes = sorted(nodes, key = lambda node: node.f)
+                if not neighbour in open_nodes:
+                    open_nodes.append(neighbour)
+                
+                for i in range(len(open_nodes)):
+                    if neighbour == open_nodes[i] and neighbour.g < open_nodes[i].g:
+                        open_nodes.pop(i)
+                        open_nodes.append(neighbour)
 
         return
-
-    def uelinton(self, bode, a: list, b: list) -> bool:
+    
+    def is_closer(self, node, nodes) -> bool:
         """
-        Preguiça de dar nome, mas basicamente verifica se um node com uma mesma posição que o bode
-        existe em uma das listas
+        Checks if a node is has a better path to the parent
         """
-        for node in a + b:
-            if node == bode and node.f <= bode.f: return True
+        for i in range(len(nodes)):
+            if node == nodes[i] and node.g < nodes[i].g:
+                nodes.pop(i)
+                return True
 
         return False
 
@@ -63,15 +71,8 @@ class AStar:
         board_size = (range(len(self.board)), range(len(self.board[-1])))
         return (place[0] in board_size[0] and place[1] in board_size[1] and\
             self.board[place[0]][place[1]] == 0)
-            
-    def get_moves(self, pos: tuple[int, int]) -> list[tuple[int,int]]:
-        """
-        Return a list of possible moves from the pos
-        """
-        moves = [(pos[0] + x, pos[1] + y) for x in [-1,0,1] for y in [-1,0,1]]
-        return list(filter(lambda x: self.is_free(x) and x != pos, moves))
 
-    def get_manhattan_moves(self, pos: tuple[int, int]) -> list[tuple[int,int]]:
+    def get_moves(self, pos: tuple[int, int]) -> list[tuple[int,int]]:
         """
         Return a list of possible moves from the pos, but only the up, down, left, right
         """
@@ -91,12 +92,15 @@ class AStar:
         return self.total_time
 
 class Node:
-    def __init__(self, position: tuple[int, int], heuristic: int, distance: int, parent = None):
+    def __init__(self, position: tuple[int, int], h: int, g: int, parent = None):
         self.position = position
-        self.heuristic = heuristic
-        self.distance = distance
+        self.h = h
+        self.g = g
         self.parent = parent
-        self.f = self.distance + self.heuristic
+        self.f = self.g + self.h
+
+    def set_parent(self, new_parent):
+        self.parent = new_parent
 
     def get_path(self) -> list[tuple[int, int]]:
         if self.parent:
@@ -108,4 +112,4 @@ class Node:
         return self.position == other.position
     
     def __repr__(self):
-        return f"({self.position} -> {self.f})"
+        return f"({self.position} - {self.f})"
