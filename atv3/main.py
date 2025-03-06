@@ -151,11 +151,13 @@ class Main:
 def main():
     maps = [
         Main(board_path="boards/a.png", start=(0, 0), goal=(15, 31)),
-        Main(board_path="boards/b.png", start=(0, 0), goal=(7, 7))
+        Main(board_path="boards/01.txt", start=(0, 0), goal=(13,13)),
+        Main(board_path="boards/b.png", start=(1, 0), goal=(7, 7)),
+        Main(board_path="boards/02.txt", start=(0, 0), goal=(0, 61))
     ]
     while True:
         try:
-            map_selection = int(input("Selecione Um Mapa:\n> 1 - Grande\n> 2 - Pequeno\n> 0 - Exit\n> "))
+            map_selection = int(input("Selecione Um Mapa:\n> 1 - Grande\n> 2 - Médio \n> 3 - Pequeno\n> 4 - Longo\n> 0 - Exit\n> "))
             if not map_selection: break
             map = maps[map_selection - 1]
         except:
